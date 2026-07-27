@@ -1,0 +1,13 @@
+{
+  "category.obsidian.title": "Obsidian Messenger",
+  "key.obsidian.open_messenger": "Open Messenger GUI (M)",
+  "obsidian.gui.title": "Obsidian Messenger — E2EE In-Game Chat",
+  "obsidian.gui.contacts": "Contacts & Sessions",
+  "obsidian.gui.add_contact": "+ Add Contact",
+  "obsidian.gui.settings": "Settings",
+  "obsidian.gui.unlock_title": "Unlock Vault",
+  "obsidian.gui.enter_passphrase": "Enter Master PIN / Passphrase:",
+  "obsidian.gui.unlock_btn": "Unlock",
+  "obsidian.gui.send_btn": "Send",
+  "obsidian.gui.input_placeholder": "Type an encrypted message..."
+}
