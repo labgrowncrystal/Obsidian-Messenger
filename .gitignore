@@ -1,0 +1,20 @@
+# Syntax: https://git-scm.com/docs/gitignore
+
+# Gradle files
+.gradle/
+build/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Output JARs
+*.jar
