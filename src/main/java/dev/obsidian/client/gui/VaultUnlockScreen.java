@@ -40,7 +40,7 @@ public class VaultUnlockScreen extends Screen {
             return;
         }
         char[] pass = input.toCharArray();
-        if (VaultManager.unlockVaultSession(pass, null)) {
+        if (VaultManager.unlockVault(pass)) {
             Minecraft.getInstance().setScreenAndShow(new MessengerScreen());
         } else {
             statusMessage = Component.literal("§cInvalid Master PIN / Passphrase!");

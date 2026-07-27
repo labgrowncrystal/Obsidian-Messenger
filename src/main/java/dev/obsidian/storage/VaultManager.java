@@ -25,6 +25,9 @@ public class VaultManager {
     private static final int IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
 
+    public static final String CONTACTS_FILE = "contacts.enc";
+    public static final String CHAT_HISTORY_FILE = "chat_history.enc";
+
     private static SecretKey cachedSessionKey = null;
     private static byte[] cachedSessionSalt = null;
 
@@ -79,22 +82,38 @@ public class VaultManager {
     }
 
     /**
-     * Unlocks the vault for the current session, caching the derived SecretKey to prevent 300ms lag spikes on every message.
+     * Unlocks the vault for returning users (using existing file salt & verifying password)
+     * OR initializes a new vault for first-time users.
      */
-    public static boolean unlockVaultSession(char[] passphrase, byte[] salt) {
+    public static boolean unlockVault(char[] passphrase) {
         try {
-            if (salt == null) {
-                salt = new byte[SALT_LENGTH];
+            if (vaultFileExists(CONTACTS_FILE)) {
+                // Returning user: Load existing file & verify password against existing salt
+                String data = loadEncryptedFile(CONTACTS_FILE, passphrase);
+                return data != null;
+            } else if (vaultFileExists(CHAT_HISTORY_FILE)) {
+                String data = loadEncryptedFile(CHAT_HISTORY_FILE, passphrase);
+                return data != null;
+            } else {
+                // First-time setup: Generate new salt, derive key, & save initial empty vault
+                byte[] salt = new byte[SALT_LENGTH];
                 new SecureRandom().nextBytes(salt);
+                cachedSessionSalt = salt;
+                cachedSessionKey = PBKDF2Helper.deriveMasterKey(passphrase, salt);
+                
+                // Initialize empty vault files
+                saveEncryptedFile(CONTACTS_FILE, "{\"contacts\":[]}", null);
+                saveEncryptedFile(CHAT_HISTORY_FILE, "{\"messages\":[]}", null);
+                return true;
             }
-            cachedSessionSalt = salt;
-            cachedSessionKey = PBKDF2Helper.deriveMasterKey(passphrase, salt);
-            return true;
         } catch (Exception e) {
-            LoggerHelper.error("VaultManager", "Failed to unlock vault session: " + e.getMessage());
+            LoggerHelper.warn("VaultManager", "Unlock failed: " + e.getMessage());
+            lockVaultSession();
             return false;
         } finally {
-            PBKDF2Helper.wipePassphrase(passphrase);
+            if (passphrase != null) {
+                PBKDF2Helper.wipePassphrase(passphrase);
+            }
         }
     }
 
@@ -168,18 +187,23 @@ public class VaultManager {
             buffer.get(ciphertext);
 
             SecretKey masterKey;
-            if (cachedSessionKey != null && cachedSessionSalt != null && Arrays.equals(salt, cachedSessionSalt)) {
+            if (masterPassphrase != null && masterPassphrase.length > 0) {
+                masterKey = PBKDF2Helper.deriveMasterKey(masterPassphrase, salt);
+            } else if (cachedSessionKey != null) {
                 masterKey = cachedSessionKey;
             } else {
-                masterKey = PBKDF2Helper.deriveMasterKey(masterPassphrase, salt);
-                cachedSessionKey = masterKey;
-                cachedSessionSalt = salt;
+                throw new IllegalStateException("Vault is locked! Passphrase or active session required.");
             }
 
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, masterKey, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
 
             byte[] plaintext = cipher.doFinal(ciphertext);
+
+            // Successfully decrypted! Update cached session key & salt
+            cachedSessionKey = masterKey;
+            cachedSessionSalt = salt;
+
             return new String(plaintext, StandardCharsets.UTF_8);
         } finally {
             if (masterPassphrase != null) {
