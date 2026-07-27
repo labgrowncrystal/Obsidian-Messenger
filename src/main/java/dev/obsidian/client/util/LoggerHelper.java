@@ -1,5 +1,7 @@
 package dev.obsidian.client.util;
 
+import net.fabricmc.loader.api.FabricLoader;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -8,13 +10,10 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Privacy-focused Logger for Obsidian Messenger.
- * Features: Universal Regex IP Anonymization, Token Masking, and Log File Size Rotation (Max 250 KB).
+ * Features: Platform-Agnostic Fabric GameDir, Universal Regex IP Anonymization, Token Masking, and Log File Size Rotation (Max 250 KB).
  */
 public class LoggerHelper {
-    private static final Path LOG_DIR = Paths.get(
-        System.getProperty("user.home"),
-        "AppData", "Roaming", ".minecraft", "obsidian_messenger", "logs"
-    );
+    private static final Path LOG_DIR = getOmDir().toPath().resolve("logs");
     private static final Path LOG_FILE = LOG_DIR.resolve("om-latest.log");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final long MAX_LOG_SIZE = 250 * 1024; // 250 KB Max
@@ -30,7 +29,12 @@ public class LoggerHelper {
     }
 
     public static File getOmDir() {
-        return new File(System.getProperty("user.home"), "AppData/Roaming/.minecraft/obsidian_messenger");
+        try {
+            return FabricLoader.getInstance().getGameDir().resolve("obsidian_messenger").toFile();
+        } catch (Throwable e) {
+            // Fallback for standalone JUnit test environment where FabricLoader is not active
+            return new File(System.getProperty("user.home"), ".minecraft/obsidian_messenger");
+        }
     }
 
     private static void rotateLogIfNeeded() {
