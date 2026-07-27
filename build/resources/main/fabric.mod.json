@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "obsidian",
+	"version": "1.0.0",
+	"name": "Obsidian Messenger (OM)",
+	"description": "Zero-Server E2EE In-Game P2P Messenger GUI for Minecraft. Features Encrypted Local History Vault (AES-256-GCM), ECDH Key Agreement, Key Pinning, Group Rooms, and In-Game GUI Screen.",
+	"authors": [
+		"labgrownmango",
+		"labgrowncrystal",
+		"Mango_LD",
+		"WantingHades901"
+	],
+	"contact": {
+		"homepage": "https://github.com/labgrowncrystal/ObsidianMessenger",
+		"sources": "https://github.com/labgrowncrystal/ObsidianMessenger",
+		"issues": "https://github.com/labgrowncrystal/ObsidianMessenger/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/obsidian/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": ["dev.obsidian.ObsidianMod"],
+		"client": ["dev.obsidian.client.ObsidianClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"fabric-api": "*",
+		"minecraft": "~26.2",
+		"java": ">=25"
+	},
+	"custom": {
+		"modmenu": {
+			"badges": ["client"],
+			"links": {
+				"modmenu.github": "https://github.com/labgrowncrystal/ObsidianMessenger",
+				"modmenu.issues": "https://github.com/labgrowncrystal/ObsidianMessenger/issues"
+			}
+		}
+	}
+}
