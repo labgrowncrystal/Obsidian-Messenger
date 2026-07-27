@@ -1,4 +1,4 @@
-# 🛡️ Obsidian Messenger (OM)
+# 🛡️ Obsidian Messenger (OM) v1.0.0
 
 **Zero-Server E2EE In-Game P2P Messenger GUI for Minecraft.**
 
@@ -9,6 +9,7 @@ Obsidian Messenger (OM) enables private, encrypted peer-to-peer chat and group m
 ## 🔒 Security & Privacy Architecture
 
 - 🛡️ **100% Zero-Server P2P Architecture** — Direct P2P TCP connections between players. No middleman or rendezvous server tracking online status or contacts.
+- 📋 **Zero-Server Friend Invites** — Generating a session token automatically copies it to your clipboard for instant pasting (Ctrl+V) into Discord/TeamSpeak or in-game chat. No central server tracks who invites whom.
 - 🔐 **ECDH Key Agreement & AES-256-GCM** — Ephemeral Elliptic Curve Diffie-Hellman (`secp256r1`) key exchange over TCP, followed by AES-256-GCM authenticated encryption.
 - 🗝️ **Master-Passphrase Encrypted Vault (`PBKDF2WithHmacSHA256`)** — Local chat history (`chat_history.enc`) and contact books (`contacts.enc`) are encrypted on disk via PBKDF2 (100,000 iterations).
 - 🔑 **Host Public Key Pinning** — MitM attack protection via host key verification during handshake.
