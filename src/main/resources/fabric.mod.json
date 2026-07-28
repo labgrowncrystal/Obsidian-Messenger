@@ -11,9 +11,9 @@
 		"WantingHades901"
 	],
 	"contact": {
-		"homepage": "https://github.com/labgrowncrystal/ObsidianMessenger",
-		"sources": "https://github.com/labgrowncrystal/ObsidianMessenger",
-		"issues": "https://github.com/labgrowncrystal/ObsidianMessenger/issues"
+		"homepage": "https://github.com/labgrowncrystal/Obsidian-Messenger",
+		"sources": "https://github.com/labgrowncrystal/Obsidian-Messenger",
+		"issues": "https://github.com/labgrowncrystal/Obsidian-Messenger/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/obsidian/icon.png",
@@ -32,8 +32,8 @@
 		"modmenu": {
 			"badges": ["client"],
 			"links": {
-				"modmenu.github": "https://github.com/labgrowncrystal/ObsidianMessenger",
-				"modmenu.issues": "https://github.com/labgrowncrystal/ObsidianMessenger/issues"
+				"modmenu.github": "https://github.com/labgrowncrystal/Obsidian-Messenger",
+				"modmenu.issues": "https://github.com/labgrowncrystal/Obsidian-Messenger/issues"
 			}
 		}
 	}
