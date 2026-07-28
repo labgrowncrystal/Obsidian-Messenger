@@ -1,7 +1,7 @@
 package dev.obsidian.client.gui;
 
+import dev.obsidian.client.ObsidianClient;
 import dev.obsidian.storage.VaultManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -41,7 +41,7 @@ public class VaultUnlockScreen extends Screen {
         }
         char[] pass = input.toCharArray();
         if (VaultManager.unlockVault(pass)) {
-            Minecraft.getInstance().setScreenAndShow(new MessengerScreen());
+            ObsidianClient.scheduleScreenOpen();
         } else {
             statusMessage = Component.literal("§cInvalid Master PIN / Passphrase!");
         }
