@@ -9,14 +9,13 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Main In-Game E2EE Messenger GUI Screen for Obsidian Messenger.
  * Features Sidebar for Contacts, Chat Window, Add Contact Modal, Personal Privacy Profile Modal, and Lock Vault action.
+ * Uses 0xFFxxxxxx ARGB Alpha Colors for 100% Opaque Text Rendering in Minecraft 26.2.
  */
 public class MessengerScreen extends Screen {
     private EditBox messageInput;
@@ -162,9 +161,10 @@ public class MessengerScreen extends Screen {
     }
 
     private void copyToClipboard(String text) {
-        try {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
-        } catch (Exception ignored) {}
+        Minecraft mc = Minecraft.getInstance();
+        if (mc != null && mc.keyboardHandler != null) {
+            mc.keyboardHandler.setClipboard(text);
+        }
     }
 
     private void openAddContactModal() {
@@ -309,13 +309,13 @@ public class MessengerScreen extends Screen {
 
         // Draw Left Sidebar Panel Box (Dark Obsidian Overlay)
         extractor.fill(5, 5, sidebarWidth, this.height - 5, 0xDD111118);
-        extractor.centeredText(this.font, Component.translatable("obsidian.gui.contacts"), sidebarWidth / 2, 15, 0x00FF88);
+        extractor.centeredText(this.font, Component.translatable("obsidian.gui.title"), sidebarWidth / 2, 15, 0xFF00FF88);
 
         // Draw Contacts List in Sidebar dynamically
         int contactY = 60;
         for (VaultManager.Contact contact : contactsList) {
             String statusIcon = contact.favorite ? "* " : (contact.lastSeen > 0 ? "[ON] " : "[OFF] ");
-            int color = contact.name.equals(selectedContact) ? 0x00FF88 : 0xCCCCCC;
+            int color = contact.name.equals(selectedContact) ? 0xFF00FF88 : 0xFFCCCCCC;
             extractor.text(this.font, statusIcon + contact.name, 15, contactY, color);
             contactY += 20;
         }
@@ -323,13 +323,13 @@ public class MessengerScreen extends Screen {
         // Draw Main Chat Header & Window
         int chatX = sidebarWidth + 15;
         extractor.fill(sidebarWidth + 5, 5, this.width - 5, this.height - 35, 0xCC181822);
-        extractor.text(this.font, "Chat mit: §e" + selectedContact + " §8(AES-256-GCM E2EE)", chatX, 15, 0xFFFFFF);
+        extractor.text(this.font, "Chat mit: §e" + selectedContact + " §8(AES-256-GCM E2EE)", chatX, 15, 0xFFFFFFFF);
         extractor.fill(chatX, 28, this.width - 15, 29, 0x55555555);
 
         // Render Chat History Messages Stream
         int msgY = 35;
         for (String msg : chatMessages) {
-            extractor.text(this.font, msg, chatX, msgY, 0xFFFFFF);
+            extractor.text(this.font, msg, chatX, msgY, 0xFFFFFFFF);
             msgY += 14;
         }
 
@@ -345,14 +345,14 @@ public class MessengerScreen extends Screen {
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "Neuer E2EE Kontakt", modalCenterX, modalCenterY - 72, 0x00FF88);
+            extractor.centeredText(this.font, "Neuer E2EE Kontakt", modalCenterX, modalCenterY - 72, 0xFF00FF88);
             
-            // Clear Labels above input boxes with 15px+ vertical margins
-            extractor.text(this.font, "1. Minecraft Name (z.B. Alex):", modalCenterX - 100, modalCenterY - 55, 0xFFFFFF);
-            extractor.text(this.font, "2. IP-Adresse / Token (optional):", modalCenterX - 100, modalCenterY - 12, 0xFFFFFF);
+            // Clear Labels above input boxes with 100% Opaque ARGB Colors
+            extractor.text(this.font, "1. Minecraft Name (z.B. Alex):", modalCenterX - 100, modalCenterY - 55, 0xFFFFFFFF);
+            extractor.text(this.font, "2. IP-Adresse / Token (optional):", modalCenterX - 100, modalCenterY - 12, 0xFFFFFFFF);
 
             if (modalStatus != null) {
-                extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 27, 0xFF5555);
+                extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 27, 0xFFFF5555);
             }
         }
 
@@ -367,20 +367,20 @@ public class MessengerScreen extends Screen {
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 82, 0x00FF88);
-            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 66, 0xFFFFFF);
+            extractor.centeredText(this.font, "Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 82, 0xFF00FF88);
+            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 66, 0xFFFFFFFF);
 
-            // Token Display (Uncovered above button)
-            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 48, 0xAAAAAA);
-            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 35, 0x00FF88);
+            // Token Display (100% Opaque ARGB Colors)
+            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 48, 0xFFAAAAAA);
+            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 35, 0xFF00FF88);
 
-            // IP Address Display with Privacy Masking by default (Uncovered above buttons)
-            extractor.text(this.font, "Deine IP-Adresse (Streamer Protection):", modalCenterX - 100, modalCenterY + 8, 0xAAAAAA);
+            // IP Address Display with Privacy Masking by default (100% Opaque ARGB Colors)
+            extractor.text(this.font, "Deine IP-Adresse (Streamer Protection):", modalCenterX - 100, modalCenterY + 8, 0xFFAAAAAA);
             String displayIp = isIpVisible ? myIpAddress : "****************";
-            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 21, 0xFF88FF);
+            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 21, 0xFF88FFFF);
 
             if (profileStatus != null) {
-                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY - 7, 0x55FF55);
+                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY - 7, 0xFF55FF55);
             }
         }
 

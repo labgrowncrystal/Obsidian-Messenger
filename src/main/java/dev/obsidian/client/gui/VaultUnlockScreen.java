@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Vault Master Passphrase / PIN Unlock Screen for Obsidian Messenger.
- * Renders cleanly with dark overlay without triggering GPU blur shader freezes.
+ * Uses 0xFFxxxxxx 100% Opaque ARGB colors for Minecraft 26.2 text rendering.
  */
 public class VaultUnlockScreen extends Screen {
     private EditBox passphraseInput;
@@ -84,11 +84,11 @@ public class VaultUnlockScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
-        extractor.centeredText(this.font, this.title, centerX, centerY - 45, 0x00FF88);
-        extractor.centeredText(this.font, Component.translatable("obsidian.gui.enter_passphrase"), centerX, centerY - 28, 0xAAAAAA);
+        extractor.centeredText(this.font, this.title, centerX, centerY - 45, 0xFF00FF88);
+        extractor.centeredText(this.font, Component.translatable("obsidian.gui.enter_passphrase"), centerX, centerY - 28, 0xFFAAAAAA);
 
         if (statusMessage != null) {
-            extractor.centeredText(this.font, statusMessage, centerX, centerY + 48, isUnlocking ? 0xFFFF55 : 0xFF5555);
+            extractor.centeredText(this.font, statusMessage, centerX, centerY + 48, isUnlocking ? 0xFFFFFF55 : 0xFFFF5555);
         }
     }
 
