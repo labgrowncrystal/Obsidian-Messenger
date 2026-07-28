@@ -2,18 +2,23 @@ package dev.obsidian.client.gui;
 
 import dev.obsidian.client.ObsidianClient;
 import dev.obsidian.storage.VaultManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Vault Master Passphrase / PIN Unlock Screen for Obsidian Messenger.
+ * Uses Asynchronous CompletableFuture execution to prevent blocking the Render Thread during PBKDF2 calculation.
  */
 public class VaultUnlockScreen extends Screen {
     private EditBox passphraseInput;
     private Component statusMessage = Component.empty();
+    private volatile boolean isUnlocking = false;
 
     public VaultUnlockScreen() {
         super(Component.translatable("obsidian.gui.unlock_title"));
@@ -34,17 +39,38 @@ public class VaultUnlockScreen extends Screen {
     }
 
     private void attemptUnlock() {
+        if (isUnlocking) return;
+
         String input = passphraseInput.getValue();
         if (input == null || input.trim().isEmpty()) {
             statusMessage = Component.literal("§cPlease enter a PIN or Passphrase.");
             return;
         }
+
         char[] pass = input.toCharArray();
-        if (VaultManager.unlockVault(pass)) {
-            ObsidianClient.scheduleScreenOpen();
-        } else {
-            statusMessage = Component.literal("§cInvalid Master PIN / Passphrase!");
+        isUnlocking = true;
+        statusMessage = Component.literal("§7Unlocking vault...");
+
+        CompletableFuture.supplyAsync(() -> VaultManager.unlockVault(pass))
+            .thenAccept(success -> {
+                Minecraft.getInstance().execute(() -> {
+                    isUnlocking = false;
+                    if (success) {
+                        ObsidianClient.scheduleScreenOpen();
+                    } else {
+                        statusMessage = Component.literal("§cInvalid Master PIN / Passphrase!");
+                    }
+                });
+            });
+    }
+
+    @Override
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent keyEvent) {
+        if (keyEvent.key() == 257 || keyEvent.key() == 335) { // Enter or Numpad Enter
+            attemptUnlock();
+            return true;
         }
+        return super.keyPressed(keyEvent);
     }
 
     @Override
@@ -59,7 +85,7 @@ public class VaultUnlockScreen extends Screen {
         extractor.centeredText(this.font, Component.translatable("obsidian.gui.enter_passphrase"), centerX, centerY - 28, 0xAAAAAA);
 
         if (statusMessage != null) {
-            extractor.centeredText(this.font, statusMessage, centerX, centerY + 48, 0xFF5555);
+            extractor.centeredText(this.font, statusMessage, centerX, centerY + 48, isUnlocking ? 0xFFFF55 : 0xFF5555);
         }
     }
 

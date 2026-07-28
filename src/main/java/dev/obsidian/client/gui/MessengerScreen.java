@@ -1,7 +1,7 @@
 package dev.obsidian.client.gui;
 
+import dev.obsidian.client.ObsidianClient;
 import dev.obsidian.storage.VaultManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -37,10 +37,10 @@ public class MessengerScreen extends Screen {
             // Modal for Add Contact
         }).bounds(10, 35, sidebarWidth - 20, 18).build());
 
-        // Lock Vault / Logout Button (Security Memory Hygiene)
+        // Lock Vault / Logout Button (Security Memory Hygiene + Deferred Screen Close)
         this.addRenderableWidget(Button.builder(Component.literal("🔒 Lock Vault"), button -> {
             VaultManager.lockVaultSession();
-            Minecraft.getInstance().setScreenAndShow(null);
+            ObsidianClient.scheduleScreenClose();
         }).bounds(10, this.height - 25, sidebarWidth - 20, 18).build());
 
         // Chat Input Box
@@ -64,6 +64,15 @@ public class MessengerScreen extends Screen {
             chatMessages.add("§8[Now] §dYou: §f" + text.trim());
             messageInput.setValue("");
         }
+    }
+
+    @Override
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent keyEvent) {
+        if (keyEvent.key() == 257 || keyEvent.key() == 335) { // Enter key
+            sendMessage();
+            return true;
+        }
+        return super.keyPressed(keyEvent);
     }
 
     @Override

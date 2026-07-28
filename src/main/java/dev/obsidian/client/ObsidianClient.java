@@ -13,18 +13,26 @@ import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Client-side Mod Initializer for Obsidian Messenger.
- * Defers screen switching to END_CLIENT_TICK to prevent GPU surface acquisition crashes.
+ * Defers screen switching and screen closing to END_CLIENT_TICK to prevent GPU surface acquisition crashes.
  */
 public class ObsidianClient implements ClientModInitializer {
     private static volatile Screen pendingScreen = null;
+    private static volatile boolean shouldCloseScreen = false;
 
     @Override
     public void onInitializeClient() {
         LoggerHelper.info("ObsidianClient", "Initializing Obsidian Messenger Client Engine & Commands...");
 
-        // Safely process screen switching on END_CLIENT_TICK to prevent render pipeline conflicts
+        // Safely process screen switching/closing on END_CLIENT_TICK to prevent render pipeline conflicts
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (pendingScreen != null && client.player != null) {
+            if (shouldCloseScreen && client.player != null) {
+                shouldCloseScreen = false;
+                try {
+                    client.setScreenAndShow(null);
+                } catch (Exception e) {
+                    LoggerHelper.error("ObsidianClient", "Error closing screen: " + e.getMessage());
+                }
+            } else if (pendingScreen != null && client.player != null) {
                 Screen screenToOpen = pendingScreen;
                 pendingScreen = null;
                 try {
@@ -53,10 +61,16 @@ public class ObsidianClient implements ClientModInitializer {
     }
 
     public static void scheduleScreenOpen() {
+        shouldCloseScreen = false;
         if (VaultManager.isVaultUnlocked()) {
             pendingScreen = new MessengerScreen();
         } else {
             pendingScreen = new VaultUnlockScreen();
         }
+    }
+
+    public static void scheduleScreenClose() {
+        pendingScreen = null;
+        shouldCloseScreen = true;
     }
 }
