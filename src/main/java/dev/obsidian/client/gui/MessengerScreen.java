@@ -2,23 +2,27 @@ package dev.obsidian.client.gui;
 
 import dev.obsidian.client.ObsidianClient;
 import dev.obsidian.storage.VaultManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Main In-Game E2EE Messenger GUI Screen for Obsidian Messenger.
- * Features Sidebar for Contacts, Chat Window, Text Input, Add Contact Modal, and Lock Vault action.
+ * Features Sidebar for Contacts, Chat Window, Add Contact Modal, Personal Privacy Profile Modal, and Lock Vault action.
  */
 public class MessengerScreen extends Screen {
     private EditBox messageInput;
     private Button sendBtn;
     private Button addContactBtn;
+    private Button profileBtn;
     private Button lockVaultBtn;
 
     private final List<String> chatMessages = new ArrayList<>();
@@ -33,9 +37,25 @@ public class MessengerScreen extends Screen {
     private Button cancelContactBtn;
     private Component modalStatus = Component.empty();
 
+    // Personal Privacy Profile Modal State & Widgets
+    private boolean showProfileModal = false;
+    private boolean isIpVisible = false;
+    private Button toggleIpBtn;
+    private Button copyIpBtn;
+    private Button copyTokenBtn;
+    private Button closeProfileBtn;
+    private Component profileStatus = Component.empty();
+
+    private final String myUsername;
+    private final String myToken = "OM-8F4A-9B2C-7E1D";
+    private final String myIpAddress = "192.168.1.15:25575";
+
     public MessengerScreen() {
         super(Component.translatable("obsidian.gui.title"));
         
+        Minecraft mc = Minecraft.getInstance();
+        myUsername = (mc != null && mc.getUser() != null) ? mc.getUser().getName() : "Player";
+
         // Mock sample contacts
         contactsList.add(new VaultManager.Contact("1", "Alex", "192.168.1.10:25575", "", true, System.currentTimeMillis()));
         contactsList.add(new VaultManager.Contact("2", "Bob", "192.168.1.12:25575", "", false, System.currentTimeMillis() - 3600000));
@@ -56,6 +76,12 @@ public class MessengerScreen extends Screen {
             openAddContactModal();
         }).bounds(10, 35, sidebarWidth - 20, 18).build();
         this.addRenderableWidget(this.addContactBtn);
+
+        // Sidebar Personal Profile Button
+        this.profileBtn = Button.builder(Component.literal("👤 Mein Profil"), button -> {
+            openProfileModal();
+        }).bounds(10, this.height - 48, sidebarWidth - 20, 18).build();
+        this.addRenderableWidget(this.profileBtn);
 
         // Lock Vault / Logout Button
         this.lockVaultBtn = Button.builder(Component.literal("🔒 Lock Vault"), button -> {
@@ -80,16 +106,16 @@ public class MessengerScreen extends Screen {
         }).bounds(chatX + chatWidth + 5, chatY, 60, inputHeight).build();
         this.addRenderableWidget(this.sendBtn);
 
-        // Initialize Modal Input Boxes & Buttons (Centered inside 240x145 Modal Box)
+        // Initialize Add Contact Modal Input Boxes & Buttons
         int modalCenterX = this.width / 2;
         int modalCenterY = this.height / 2;
 
-        this.modalNameInput = new EditBox(this.font, modalCenterX - 100, modalCenterY - 38, 200, 18, Component.literal("Spielername (z.B. Alex)"));
+        this.modalNameInput = new EditBox(this.font, modalCenterX - 100, modalCenterY - 38, 200, 18, Component.literal("Spielername"));
         this.modalNameInput.setMaxLength(32);
         this.modalNameInput.setVisible(false);
         this.addRenderableWidget(this.modalNameInput);
 
-        this.modalTokenInput = new EditBox(this.font, modalCenterX - 100, modalCenterY + 5, 200, 18, Component.literal("IP oder Token (z.B. 192.168.1.5)"));
+        this.modalTokenInput = new EditBox(this.font, modalCenterX - 100, modalCenterY + 5, 200, 18, Component.literal("IP oder Token"));
         this.modalTokenInput.setMaxLength(128);
         this.modalTokenInput.setVisible(false);
         this.addRenderableWidget(this.modalTokenInput);
@@ -105,9 +131,44 @@ public class MessengerScreen extends Screen {
         }).bounds(modalCenterX + 5, modalCenterY + 33, 95, 20).build();
         this.cancelContactBtn.visible = false;
         this.addRenderableWidget(this.cancelContactBtn);
+
+        // Initialize Personal Profile Modal Widgets
+        this.copyTokenBtn = Button.builder(Component.literal("📋 Token Kopieren"), button -> {
+            copyToClipboard(myToken);
+            profileStatus = Component.literal("§aToken in Zwischenablage kopiert!");
+        }).bounds(modalCenterX - 100, modalCenterY - 18, 200, 18).build();
+        this.copyTokenBtn.visible = false;
+        this.addRenderableWidget(this.copyTokenBtn);
+
+        this.toggleIpBtn = Button.builder(Component.literal("👁️ IP Anzeigen"), button -> {
+            isIpVisible = !isIpVisible;
+            toggleIpBtn.setMessage(Component.literal(isIpVisible ? "🙈 IP Verbergen" : "👁️ IP Anzeigen"));
+        }).bounds(modalCenterX - 100, modalCenterY + 28, 95, 18).build();
+        this.toggleIpBtn.visible = false;
+        this.addRenderableWidget(this.toggleIpBtn);
+
+        this.copyIpBtn = Button.builder(Component.literal("📋 IP Kopieren"), button -> {
+            copyToClipboard(myIpAddress);
+            profileStatus = Component.literal("§aIP-Adresse in Zwischenablage kopiert!");
+        }).bounds(modalCenterX + 5, modalCenterY + 28, 95, 18).build();
+        this.copyIpBtn.visible = false;
+        this.addRenderableWidget(this.copyIpBtn);
+
+        this.closeProfileBtn = Button.builder(Component.literal("Schließen"), button -> {
+            closeProfileModal();
+        }).bounds(modalCenterX - 50, modalCenterY + 54, 100, 18).build();
+        this.closeProfileBtn.visible = false;
+        this.addRenderableWidget(this.closeProfileBtn);
+    }
+
+    private void copyToClipboard(String text) {
+        try {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
+        } catch (Exception ignored) {}
     }
 
     private void openAddContactModal() {
+        closeProfileModal();
         showAddContactModal = true;
         modalNameInput.setValue("");
         modalTokenInput.setValue("");
@@ -118,10 +179,10 @@ public class MessengerScreen extends Screen {
         saveContactBtn.visible = true;
         cancelContactBtn.visible = true;
 
-        // Disable underlying chat controls while modal is open
         messageInput.setVisible(false);
         sendBtn.visible = false;
         addContactBtn.active = false;
+        profileBtn.active = false;
         lockVaultBtn.active = false;
 
         this.setInitialFocus(modalNameInput);
@@ -135,10 +196,47 @@ public class MessengerScreen extends Screen {
         saveContactBtn.visible = false;
         cancelContactBtn.visible = false;
 
-        // Re-enable underlying chat controls
         messageInput.setVisible(true);
         sendBtn.visible = true;
         addContactBtn.active = true;
+        profileBtn.active = true;
+        lockVaultBtn.active = true;
+
+        this.setInitialFocus(messageInput);
+    }
+
+    private void openProfileModal() {
+        closeAddContactModal();
+        showProfileModal = true;
+        isIpVisible = false;
+        profileStatus = Component.empty();
+
+        copyTokenBtn.visible = true;
+        toggleIpBtn.visible = true;
+        toggleIpBtn.setMessage(Component.literal("👁️ IP Anzeigen"));
+        copyIpBtn.visible = true;
+        closeProfileBtn.visible = true;
+
+        messageInput.setVisible(false);
+        sendBtn.visible = false;
+        addContactBtn.active = false;
+        profileBtn.active = false;
+        lockVaultBtn.active = false;
+    }
+
+    private void closeProfileModal() {
+        showProfileModal = false;
+        isIpVisible = false;
+
+        copyTokenBtn.visible = false;
+        toggleIpBtn.visible = false;
+        copyIpBtn.visible = false;
+        closeProfileBtn.visible = false;
+
+        messageInput.setVisible(true);
+        sendBtn.visible = true;
+        addContactBtn.active = true;
+        profileBtn.active = true;
         lockVaultBtn.active = true;
 
         this.setInitialFocus(messageInput);
@@ -154,7 +252,6 @@ public class MessengerScreen extends Screen {
         }
 
         if (token == null || token.trim().isEmpty()) {
-            // Default fallback if left blank
             token = "P2P-Local";
         }
 
@@ -168,7 +265,7 @@ public class MessengerScreen extends Screen {
     }
 
     private void sendMessage() {
-        if (showAddContactModal) return;
+        if (showAddContactModal || showProfileModal) return;
         String text = messageInput.getValue();
         if (text != null && !text.trim().isEmpty()) {
             chatMessages.add("§8[Now] §dYou: §f" + text.trim());
@@ -180,7 +277,7 @@ public class MessengerScreen extends Screen {
     public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean isFocused) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (!showAddContactModal && mouseX >= 5 && mouseX <= 140 && mouseY >= 60) {
+        if (!showAddContactModal && !showProfileModal && mouseX >= 5 && mouseX <= 140 && mouseY >= 60 && mouseY <= this.height - 55) {
             int index = (int) ((mouseY - 60) / 20);
             if (index >= 0 && index < contactsList.size()) {
                 selectedContact = contactsList.get(index).name;
@@ -195,7 +292,7 @@ public class MessengerScreen extends Screen {
         if (keyEvent.key() == 257 || keyEvent.key() == 335) { // Enter key
             if (showAddContactModal) {
                 saveNewContact();
-            } else {
+            } else if (!showProfileModal) {
                 sendMessage();
             }
             return true;
@@ -236,7 +333,7 @@ public class MessengerScreen extends Screen {
             msgY += 14;
         }
 
-        // Render Add Contact Modal Dialog Overlay BEFORE super.extractRenderState so widgets render ON TOP!
+        // Render Add Contact Modal Dialog Overlay
         if (showAddContactModal) {
             int modalCenterX = this.width / 2;
             int modalCenterY = this.height / 2;
@@ -259,7 +356,35 @@ public class MessengerScreen extends Screen {
             }
         }
 
-        // Render all widgets (buttons, input boxes) ON TOP of the modal panel
+        // Render Personal Privacy Profile Modal Overlay
+        if (showProfileModal) {
+            int modalCenterX = this.width / 2;
+            int modalCenterY = this.height / 2;
+            int modalW = 240;
+            int modalH = 160;
+
+            extractor.fill(0, 0, this.width, this.height, 0xAA000000);
+            extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
+            extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
+
+            extractor.centeredText(this.font, "👤 Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 70, 0x00FF88);
+            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 54, 0xFFFFFF);
+
+            // Token Display
+            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 38, 0xAAAAAA);
+            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 27, 0x00FF88);
+
+            // IP Address Display with Privacy Masking by default
+            extractor.text(this.font, "Deine IP-Adresse (Standard maskiert):", modalCenterX - 100, modalCenterY + 5, 0xAAAAAA);
+            String displayIp = isIpVisible ? myIpAddress : "••••••••••••••••";
+            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 16, 0xFF88FF);
+
+            if (profileStatus != null) {
+                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY + 48, 0x55FF55);
+            }
+        }
+
+        // Render all widgets (buttons, input boxes) ON TOP of modal panels
         super.extractRenderState(extractor, mouseX, mouseY, partialTick);
     }
 
