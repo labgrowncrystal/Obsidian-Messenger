@@ -50,6 +50,7 @@ public class MessengerScreen extends Screen {
 
         this.messageInput = new EditBox(this.font, chatX, chatY, chatWidth, inputHeight, Component.translatable("obsidian.gui.input_placeholder"));
         this.messageInput.setMaxLength(500);
+        this.setInitialFocus(this.messageInput);
         this.addRenderableWidget(this.messageInput);
 
         // Send Button
@@ -77,7 +78,8 @@ public class MessengerScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float partialTick) {
-        this.extractBackground(extractor, mouseX, mouseY, partialTick);
+        // Render dark obsidian overlay background (prevents GPU blur shader freezes)
+        extractor.fill(0, 0, this.width, this.height, 0xEE0B0B10);
 
         int sidebarWidth = 140;
 

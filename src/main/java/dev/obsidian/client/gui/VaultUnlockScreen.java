@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Vault Master Passphrase / PIN Unlock Screen for Obsidian Messenger.
- * Uses Asynchronous CompletableFuture execution to prevent blocking the Render Thread during PBKDF2 calculation.
+ * Renders cleanly with dark overlay without triggering GPU blur shader freezes.
  */
 public class VaultUnlockScreen extends Screen {
     private EditBox passphraseInput;
@@ -31,6 +31,7 @@ public class VaultUnlockScreen extends Screen {
 
         this.passphraseInput = new EditBox(this.font, centerX - 100, centerY - 10, 200, 20, Component.translatable("obsidian.gui.enter_passphrase"));
         this.passphraseInput.setMaxLength(64);
+        this.setInitialFocus(this.passphraseInput);
         this.addRenderableWidget(this.passphraseInput);
 
         this.addRenderableWidget(Button.builder(Component.translatable("obsidian.gui.unlock_btn"), button -> {
@@ -75,7 +76,9 @@ public class VaultUnlockScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float partialTick) {
-        this.extractBackground(extractor, mouseX, mouseY, partialTick);
+        // Render sleek dark obsidian overlay background (prevents GPU blur shader freezes)
+        extractor.fill(0, 0, this.width, this.height, 0xEE0B0B10);
+
         super.extractRenderState(extractor, mouseX, mouseY, partialTick);
 
         int centerX = this.width / 2;
