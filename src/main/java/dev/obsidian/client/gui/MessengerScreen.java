@@ -80,29 +80,29 @@ public class MessengerScreen extends Screen {
         }).bounds(chatX + chatWidth + 5, chatY, 60, inputHeight).build();
         this.addRenderableWidget(this.sendBtn);
 
-        // Initialize Modal Input Boxes & Buttons (Centered inside 220x130 Modal Box)
+        // Initialize Modal Input Boxes & Buttons (Centered inside 240x145 Modal Box)
         int modalCenterX = this.width / 2;
         int modalCenterY = this.height / 2;
 
-        this.modalNameInput = new EditBox(this.font, modalCenterX - 90, modalCenterY - 35, 180, 18, Component.literal("Contact Name"));
+        this.modalNameInput = new EditBox(this.font, modalCenterX - 100, modalCenterY - 38, 200, 18, Component.literal("Spielername (z.B. Alex)"));
         this.modalNameInput.setMaxLength(32);
         this.modalNameInput.setVisible(false);
         this.addRenderableWidget(this.modalNameInput);
 
-        this.modalTokenInput = new EditBox(this.font, modalCenterX - 90, modalCenterY - 5, 180, 18, Component.literal("Token or IP:Port"));
+        this.modalTokenInput = new EditBox(this.font, modalCenterX - 100, modalCenterY + 5, 200, 18, Component.literal("IP oder Token (z.B. 192.168.1.5)"));
         this.modalTokenInput.setMaxLength(128);
         this.modalTokenInput.setVisible(false);
         this.addRenderableWidget(this.modalTokenInput);
 
-        this.saveContactBtn = Button.builder(Component.literal("Save Contact"), button -> {
+        this.saveContactBtn = Button.builder(Component.literal("Kontakt Speichern"), button -> {
             saveNewContact();
-        }).bounds(modalCenterX - 90, modalCenterY + 22, 85, 20).build();
+        }).bounds(modalCenterX - 100, modalCenterY + 33, 95, 20).build();
         this.saveContactBtn.visible = false;
         this.addRenderableWidget(this.saveContactBtn);
 
-        this.cancelContactBtn = Button.builder(Component.literal("Cancel"), button -> {
+        this.cancelContactBtn = Button.builder(Component.literal("Abbrechen"), button -> {
             closeAddContactModal();
-        }).bounds(modalCenterX + 5, modalCenterY + 22, 85, 20).build();
+        }).bounds(modalCenterX + 5, modalCenterY + 33, 95, 20).build();
         this.cancelContactBtn.visible = false;
         this.addRenderableWidget(this.cancelContactBtn);
     }
@@ -149,13 +149,13 @@ public class MessengerScreen extends Screen {
         String token = modalTokenInput.getValue();
 
         if (name == null || name.trim().isEmpty()) {
-            modalStatus = Component.literal("§cPlease enter a contact name.");
+            modalStatus = Component.literal("§cBitte gib den Spielernamen deines Freundes ein!");
             return;
         }
 
         if (token == null || token.trim().isEmpty()) {
-            modalStatus = Component.literal("§cPlease enter a Token or IP:Port.");
-            return;
+            // Default fallback if left blank
+            token = "P2P-Local";
         }
 
         String contactId = "cnt_" + System.currentTimeMillis();
@@ -164,7 +164,7 @@ public class MessengerScreen extends Screen {
         selectedContact = newContact.name;
 
         closeAddContactModal();
-        chatMessages.add("§8[System] §aAdded new contact: §e" + newContact.name);
+        chatMessages.add("§8[System] §aNeuer Kontakt hinzugefügt: §e" + newContact.name);
     }
 
     private void sendMessage() {
@@ -240,20 +240,22 @@ public class MessengerScreen extends Screen {
         if (showAddContactModal) {
             int modalCenterX = this.width / 2;
             int modalCenterY = this.height / 2;
-            int modalW = 220;
-            int modalH = 130;
+            int modalW = 240;
+            int modalH = 145;
 
             // Modal Screen Veil & Dark Glass Panel Box
             extractor.fill(0, 0, this.width, this.height, 0xAA000000);
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "➕ Add E2EE Contact", modalCenterX, modalCenterY - 56, 0x00FF88);
-            extractor.text(this.font, "Name:", modalCenterX - 90, modalCenterY - 47, 0xAAAAAA);
-            extractor.text(this.font, "Token / IP:", modalCenterX - 90, modalCenterY - 17, 0xAAAAAA);
+            extractor.centeredText(this.font, "➕ Neuer E2EE Kontakt", modalCenterX, modalCenterY - 60, 0x00FF88);
+            
+            // Clear Labels above input boxes
+            extractor.text(this.font, "1. Minecraft Name (z.B. Alex):", modalCenterX - 100, modalCenterY - 50, 0xAAAAAA);
+            extractor.text(this.font, "2. IP-Adresse / Token (optional):", modalCenterX - 100, modalCenterY - 7, 0xAAAAAA);
 
             if (modalStatus != null) {
-                extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 45, 0xFF5555);
+                extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 58, 0xFF5555);
             }
         }
 
