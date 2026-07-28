@@ -17,6 +17,10 @@ import java.util.List;
  */
 public class MessengerScreen extends Screen {
     private EditBox messageInput;
+    private Button sendBtn;
+    private Button addContactBtn;
+    private Button lockVaultBtn;
+
     private final List<String> chatMessages = new ArrayList<>();
     private final List<VaultManager.Contact> contactsList = new ArrayList<>();
     private String selectedContact = "Alex";
@@ -48,15 +52,17 @@ public class MessengerScreen extends Screen {
         int inputHeight = 20;
 
         // Sidebar Add Contact Button
-        this.addRenderableWidget(Button.builder(Component.translatable("obsidian.gui.add_contact"), button -> {
+        this.addContactBtn = Button.builder(Component.translatable("obsidian.gui.add_contact"), button -> {
             openAddContactModal();
-        }).bounds(10, 35, sidebarWidth - 20, 18).build());
+        }).bounds(10, 35, sidebarWidth - 20, 18).build();
+        this.addRenderableWidget(this.addContactBtn);
 
-        // Lock Vault / Logout Button (Security Memory Hygiene + Deferred Screen Close)
-        this.addRenderableWidget(Button.builder(Component.literal("🔒 Lock Vault"), button -> {
+        // Lock Vault / Logout Button
+        this.lockVaultBtn = Button.builder(Component.literal("🔒 Lock Vault"), button -> {
             VaultManager.lockVaultSession();
             ObsidianClient.scheduleScreenClose();
-        }).bounds(10, this.height - 25, sidebarWidth - 20, 18).build());
+        }).bounds(10, this.height - 25, sidebarWidth - 20, 18).build();
+        this.addRenderableWidget(this.lockVaultBtn);
 
         // Main Chat Input Box
         int chatX = sidebarWidth + 15;
@@ -69,33 +75,34 @@ public class MessengerScreen extends Screen {
         this.addRenderableWidget(this.messageInput);
 
         // Send Button
-        this.addRenderableWidget(Button.builder(Component.translatable("obsidian.gui.send_btn"), button -> {
+        this.sendBtn = Button.builder(Component.translatable("obsidian.gui.send_btn"), button -> {
             sendMessage();
-        }).bounds(chatX + chatWidth + 5, chatY, 60, inputHeight).build());
+        }).bounds(chatX + chatWidth + 5, chatY, 60, inputHeight).build();
+        this.addRenderableWidget(this.sendBtn);
 
-        // Initialize Modal Input Boxes (Centered)
+        // Initialize Modal Input Boxes & Buttons (Centered inside 220x130 Modal Box)
         int modalCenterX = this.width / 2;
         int modalCenterY = this.height / 2;
 
-        this.modalNameInput = new EditBox(this.font, modalCenterX - 90, modalCenterY - 40, 180, 18, Component.literal("Contact Name"));
+        this.modalNameInput = new EditBox(this.font, modalCenterX - 90, modalCenterY - 35, 180, 18, Component.literal("Contact Name"));
         this.modalNameInput.setMaxLength(32);
         this.modalNameInput.setVisible(false);
         this.addRenderableWidget(this.modalNameInput);
 
-        this.modalTokenInput = new EditBox(this.font, modalCenterX - 90, modalCenterY - 10, 180, 18, Component.literal("Token or IP:Port"));
+        this.modalTokenInput = new EditBox(this.font, modalCenterX - 90, modalCenterY - 5, 180, 18, Component.literal("Token or IP:Port"));
         this.modalTokenInput.setMaxLength(128);
         this.modalTokenInput.setVisible(false);
         this.addRenderableWidget(this.modalTokenInput);
 
         this.saveContactBtn = Button.builder(Component.literal("Save Contact"), button -> {
             saveNewContact();
-        }).bounds(modalCenterX - 90, modalCenterY + 20, 85, 20).build();
+        }).bounds(modalCenterX - 90, modalCenterY + 22, 85, 20).build();
         this.saveContactBtn.visible = false;
         this.addRenderableWidget(this.saveContactBtn);
 
         this.cancelContactBtn = Button.builder(Component.literal("Cancel"), button -> {
             closeAddContactModal();
-        }).bounds(modalCenterX + 5, modalCenterY + 20, 85, 20).build();
+        }).bounds(modalCenterX + 5, modalCenterY + 22, 85, 20).build();
         this.cancelContactBtn.visible = false;
         this.addRenderableWidget(this.cancelContactBtn);
     }
@@ -105,19 +112,35 @@ public class MessengerScreen extends Screen {
         modalNameInput.setValue("");
         modalTokenInput.setValue("");
         modalStatus = Component.empty();
+        
         modalNameInput.setVisible(true);
         modalTokenInput.setVisible(true);
         saveContactBtn.visible = true;
         cancelContactBtn.visible = true;
+
+        // Disable underlying chat controls while modal is open
+        messageInput.setVisible(false);
+        sendBtn.visible = false;
+        addContactBtn.active = false;
+        lockVaultBtn.active = false;
+
         this.setInitialFocus(modalNameInput);
     }
 
     private void closeAddContactModal() {
         showAddContactModal = false;
+        
         modalNameInput.setVisible(false);
         modalTokenInput.setVisible(false);
         saveContactBtn.visible = false;
         cancelContactBtn.visible = false;
+
+        // Re-enable underlying chat controls
+        messageInput.setVisible(true);
+        sendBtn.visible = true;
+        addContactBtn.active = true;
+        lockVaultBtn.active = true;
+
         this.setInitialFocus(messageInput);
     }
 
@@ -213,28 +236,29 @@ public class MessengerScreen extends Screen {
             msgY += 14;
         }
 
-        super.extractRenderState(extractor, mouseX, mouseY, partialTick);
-
-        // Render Add Contact Modal Dialog Overlay if active
+        // Render Add Contact Modal Dialog Overlay BEFORE super.extractRenderState so widgets render ON TOP!
         if (showAddContactModal) {
             int modalCenterX = this.width / 2;
             int modalCenterY = this.height / 2;
             int modalW = 220;
-            int modalH = 140;
+            int modalH = 130;
 
-            // Modal Box Shadow & Dark Glass Panel
+            // Modal Screen Veil & Dark Glass Panel Box
             extractor.fill(0, 0, this.width, this.height, 0xAA000000);
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "➕ Add New E2EE Contact", modalCenterX, modalCenterY - 60, 0x00FF88);
-            extractor.text(this.font, "Name:", modalCenterX - 90, modalCenterY - 50, 0xAAAAAA);
-            extractor.text(this.font, "Token / IP:", modalCenterX - 90, modalCenterY - 20, 0xAAAAAA);
+            extractor.centeredText(this.font, "➕ Add E2EE Contact", modalCenterX, modalCenterY - 56, 0x00FF88);
+            extractor.text(this.font, "Name:", modalCenterX - 90, modalCenterY - 47, 0xAAAAAA);
+            extractor.text(this.font, "Token / IP:", modalCenterX - 90, modalCenterY - 17, 0xAAAAAA);
 
             if (modalStatus != null) {
                 extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 45, 0xFF5555);
             }
         }
+
+        // Render all widgets (buttons, input boxes) ON TOP of the modal panel
+        super.extractRenderState(extractor, mouseX, mouseY, partialTick);
     }
 
     @Override
