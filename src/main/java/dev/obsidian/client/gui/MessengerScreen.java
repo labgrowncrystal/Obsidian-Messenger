@@ -106,57 +106,57 @@ public class MessengerScreen extends Screen {
         }).bounds(chatX + chatWidth + 5, chatY, 60, inputHeight).build();
         this.addRenderableWidget(this.sendBtn);
 
-        // Initialize Add Contact Modal Input Boxes & Buttons
+        // Initialize Add Contact Modal Input Boxes & Buttons (Centered inside 240x170 Modal Box)
         int modalCenterX = this.width / 2;
         int modalCenterY = this.height / 2;
 
-        this.modalNameInput = new EditBox(this.font, modalCenterX - 100, modalCenterY - 38, 200, 18, Component.literal("Spielername"));
+        this.modalNameInput = new EditBox(this.font, modalCenterX - 100, modalCenterY - 42, 200, 18, Component.literal("Spielername (z.B. Alex)"));
         this.modalNameInput.setMaxLength(32);
         this.modalNameInput.setVisible(false);
         this.addRenderableWidget(this.modalNameInput);
 
-        this.modalTokenInput = new EditBox(this.font, modalCenterX - 100, modalCenterY + 5, 200, 18, Component.literal("IP oder Token"));
+        this.modalTokenInput = new EditBox(this.font, modalCenterX - 100, modalCenterY + 1, 200, 18, Component.literal("IP oder Token (optional)"));
         this.modalTokenInput.setMaxLength(128);
         this.modalTokenInput.setVisible(false);
         this.addRenderableWidget(this.modalTokenInput);
 
         this.saveContactBtn = Button.builder(Component.literal("Kontakt Speichern"), button -> {
             saveNewContact();
-        }).bounds(modalCenterX - 100, modalCenterY + 33, 95, 20).build();
+        }).bounds(modalCenterX - 100, modalCenterY + 45, 95, 20).build();
         this.saveContactBtn.visible = false;
         this.addRenderableWidget(this.saveContactBtn);
 
         this.cancelContactBtn = Button.builder(Component.literal("Abbrechen"), button -> {
             closeAddContactModal();
-        }).bounds(modalCenterX + 5, modalCenterY + 33, 95, 20).build();
+        }).bounds(modalCenterX + 5, modalCenterY + 45, 95, 20).build();
         this.cancelContactBtn.visible = false;
         this.addRenderableWidget(this.cancelContactBtn);
 
-        // Initialize Personal Profile Modal Widgets (Clean Layout)
+        // Initialize Personal Profile Modal Widgets (Centered inside 260x190 Modal Box)
         this.copyTokenBtn = Button.builder(Component.literal("Token Kopieren"), button -> {
             copyToClipboard(myToken);
             profileStatus = Component.literal("§aToken in Zwischenablage kopiert!");
-        }).bounds(modalCenterX - 100, modalCenterY - 15, 200, 18).build();
+        }).bounds(modalCenterX - 100, modalCenterY - 20, 200, 18).build();
         this.copyTokenBtn.visible = false;
         this.addRenderableWidget(this.copyTokenBtn);
 
         this.toggleIpBtn = Button.builder(Component.literal("IP Anzeigen"), button -> {
             isIpVisible = !isIpVisible;
             toggleIpBtn.setMessage(Component.literal(isIpVisible ? "IP Verbergen" : "IP Anzeigen"));
-        }).bounds(modalCenterX - 100, modalCenterY + 34, 95, 18).build();
+        }).bounds(modalCenterX - 100, modalCenterY + 36, 95, 18).build();
         this.toggleIpBtn.visible = false;
         this.addRenderableWidget(this.toggleIpBtn);
 
         this.copyIpBtn = Button.builder(Component.literal("IP Kopieren"), button -> {
             copyToClipboard(myIpAddress);
             profileStatus = Component.literal("§aIP-Adresse in Zwischenablage kopiert!");
-        }).bounds(modalCenterX + 5, modalCenterY + 34, 95, 18).build();
+        }).bounds(modalCenterX + 5, modalCenterY + 36, 95, 18).build();
         this.copyIpBtn.visible = false;
         this.addRenderableWidget(this.copyIpBtn);
 
         this.closeProfileBtn = Button.builder(Component.literal("Schliessen"), button -> {
             closeProfileModal();
-        }).bounds(modalCenterX - 50, modalCenterY + 58, 100, 18).build();
+        }).bounds(modalCenterX - 50, modalCenterY + 62, 100, 18).build();
         this.closeProfileBtn.visible = false;
         this.addRenderableWidget(this.closeProfileBtn);
     }
@@ -179,7 +179,6 @@ public class MessengerScreen extends Screen {
         saveContactBtn.visible = true;
         cancelContactBtn.visible = true;
 
-        // Hide underlying sidebar & chat buttons while modal is open
         messageInput.setVisible(false);
         sendBtn.visible = false;
         addContactBtn.visible = false;
@@ -197,7 +196,6 @@ public class MessengerScreen extends Screen {
         saveContactBtn.visible = false;
         cancelContactBtn.visible = false;
 
-        // Re-show underlying sidebar & chat buttons
         messageInput.setVisible(true);
         sendBtn.visible = true;
         addContactBtn.visible = true;
@@ -219,7 +217,6 @@ public class MessengerScreen extends Screen {
         copyIpBtn.visible = true;
         closeProfileBtn.visible = true;
 
-        // Hide underlying sidebar & chat buttons while modal is open
         messageInput.setVisible(false);
         sendBtn.visible = false;
         addContactBtn.visible = false;
@@ -236,7 +233,6 @@ public class MessengerScreen extends Screen {
         copyIpBtn.visible = false;
         closeProfileBtn.visible = false;
 
-        // Re-show underlying sidebar & chat buttons
         messageInput.setVisible(true);
         sendBtn.visible = true;
         addContactBtn.visible = true;
@@ -342,49 +338,49 @@ public class MessengerScreen extends Screen {
             int modalCenterX = this.width / 2;
             int modalCenterY = this.height / 2;
             int modalW = 240;
-            int modalH = 145;
+            int modalH = 170;
 
             // Modal Screen Veil & Dark Glass Panel Box
             extractor.fill(0, 0, this.width, this.height, 0xAA000000);
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "Neuer E2EE Kontakt", modalCenterX, modalCenterY - 60, 0x00FF88);
+            extractor.centeredText(this.font, "Neuer E2EE Kontakt", modalCenterX, modalCenterY - 72, 0x00FF88);
             
-            // Clear Labels above input boxes
-            extractor.text(this.font, "1. Minecraft Name (z.B. Alex):", modalCenterX - 100, modalCenterY - 50, 0xAAAAAA);
-            extractor.text(this.font, "2. IP-Adresse / Token (optional):", modalCenterX - 100, modalCenterY - 7, 0xAAAAAA);
+            // Clear Labels above input boxes with 15px+ vertical margins
+            extractor.text(this.font, "1. Minecraft Name (z.B. Alex):", modalCenterX - 100, modalCenterY - 55, 0xFFFFFF);
+            extractor.text(this.font, "2. IP-Adresse / Token (optional):", modalCenterX - 100, modalCenterY - 12, 0xFFFFFF);
 
             if (modalStatus != null) {
-                extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 58, 0xFF5555);
+                extractor.centeredText(this.font, modalStatus, modalCenterX, modalCenterY + 27, 0xFF5555);
             }
         }
 
-        // Render Personal Privacy Profile Modal Overlay BEFORE super.extractRenderState
+        // Render Personal Privacy Profile Modal Overlay
         if (showProfileModal) {
             int modalCenterX = this.width / 2;
             int modalCenterY = this.height / 2;
-            int modalW = 250;
-            int modalH = 175;
+            int modalW = 260;
+            int modalH = 190;
 
             extractor.fill(0, 0, this.width, this.height, 0xAA000000);
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 75, 0x00FF88);
-            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 58, 0xFFFFFF);
+            extractor.centeredText(this.font, "Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 82, 0x00FF88);
+            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 66, 0xFFFFFF);
 
-            // Token Display (Clear spacing)
-            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 42, 0xAAAAAA);
-            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 30, 0x00FF88);
+            // Token Display (Uncovered above button)
+            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 48, 0xAAAAAA);
+            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 35, 0x00FF88);
 
-            // IP Address Display with Privacy Masking by default (Clear spacing)
+            // IP Address Display with Privacy Masking by default (Uncovered above buttons)
             extractor.text(this.font, "Deine IP-Adresse (Streamer Protection):", modalCenterX - 100, modalCenterY + 8, 0xAAAAAA);
             String displayIp = isIpVisible ? myIpAddress : "****************";
-            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 20, 0xFF88FF);
+            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 21, 0xFF88FF);
 
             if (profileStatus != null) {
-                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY - 82, 0x55FF55);
+                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY - 7, 0x55FF55);
             }
         }
 
