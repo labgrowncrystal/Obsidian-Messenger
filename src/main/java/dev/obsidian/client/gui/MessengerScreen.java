@@ -78,13 +78,13 @@ public class MessengerScreen extends Screen {
         this.addRenderableWidget(this.addContactBtn);
 
         // Sidebar Personal Profile Button
-        this.profileBtn = Button.builder(Component.literal("👤 Mein Profil"), button -> {
+        this.profileBtn = Button.builder(Component.literal("Mein Profil"), button -> {
             openProfileModal();
         }).bounds(10, this.height - 48, sidebarWidth - 20, 18).build();
         this.addRenderableWidget(this.profileBtn);
 
         // Lock Vault / Logout Button
-        this.lockVaultBtn = Button.builder(Component.literal("🔒 Lock Vault"), button -> {
+        this.lockVaultBtn = Button.builder(Component.literal("Lock Vault"), button -> {
             VaultManager.lockVaultSession();
             ObsidianClient.scheduleScreenClose();
         }).bounds(10, this.height - 25, sidebarWidth - 20, 18).build();
@@ -132,31 +132,31 @@ public class MessengerScreen extends Screen {
         this.cancelContactBtn.visible = false;
         this.addRenderableWidget(this.cancelContactBtn);
 
-        // Initialize Personal Profile Modal Widgets
-        this.copyTokenBtn = Button.builder(Component.literal("📋 Token Kopieren"), button -> {
+        // Initialize Personal Profile Modal Widgets (Clean Layout)
+        this.copyTokenBtn = Button.builder(Component.literal("Token Kopieren"), button -> {
             copyToClipboard(myToken);
             profileStatus = Component.literal("§aToken in Zwischenablage kopiert!");
-        }).bounds(modalCenterX - 100, modalCenterY - 18, 200, 18).build();
+        }).bounds(modalCenterX - 100, modalCenterY - 15, 200, 18).build();
         this.copyTokenBtn.visible = false;
         this.addRenderableWidget(this.copyTokenBtn);
 
-        this.toggleIpBtn = Button.builder(Component.literal("👁️ IP Anzeigen"), button -> {
+        this.toggleIpBtn = Button.builder(Component.literal("IP Anzeigen"), button -> {
             isIpVisible = !isIpVisible;
-            toggleIpBtn.setMessage(Component.literal(isIpVisible ? "🙈 IP Verbergen" : "👁️ IP Anzeigen"));
-        }).bounds(modalCenterX - 100, modalCenterY + 28, 95, 18).build();
+            toggleIpBtn.setMessage(Component.literal(isIpVisible ? "IP Verbergen" : "IP Anzeigen"));
+        }).bounds(modalCenterX - 100, modalCenterY + 34, 95, 18).build();
         this.toggleIpBtn.visible = false;
         this.addRenderableWidget(this.toggleIpBtn);
 
-        this.copyIpBtn = Button.builder(Component.literal("📋 IP Kopieren"), button -> {
+        this.copyIpBtn = Button.builder(Component.literal("IP Kopieren"), button -> {
             copyToClipboard(myIpAddress);
             profileStatus = Component.literal("§aIP-Adresse in Zwischenablage kopiert!");
-        }).bounds(modalCenterX + 5, modalCenterY + 28, 95, 18).build();
+        }).bounds(modalCenterX + 5, modalCenterY + 34, 95, 18).build();
         this.copyIpBtn.visible = false;
         this.addRenderableWidget(this.copyIpBtn);
 
-        this.closeProfileBtn = Button.builder(Component.literal("Schließen"), button -> {
+        this.closeProfileBtn = Button.builder(Component.literal("Schliessen"), button -> {
             closeProfileModal();
-        }).bounds(modalCenterX - 50, modalCenterY + 54, 100, 18).build();
+        }).bounds(modalCenterX - 50, modalCenterY + 58, 100, 18).build();
         this.closeProfileBtn.visible = false;
         this.addRenderableWidget(this.closeProfileBtn);
     }
@@ -179,11 +179,12 @@ public class MessengerScreen extends Screen {
         saveContactBtn.visible = true;
         cancelContactBtn.visible = true;
 
+        // Hide underlying sidebar & chat buttons while modal is open
         messageInput.setVisible(false);
         sendBtn.visible = false;
-        addContactBtn.active = false;
-        profileBtn.active = false;
-        lockVaultBtn.active = false;
+        addContactBtn.visible = false;
+        profileBtn.visible = false;
+        lockVaultBtn.visible = false;
 
         this.setInitialFocus(modalNameInput);
     }
@@ -196,11 +197,12 @@ public class MessengerScreen extends Screen {
         saveContactBtn.visible = false;
         cancelContactBtn.visible = false;
 
+        // Re-show underlying sidebar & chat buttons
         messageInput.setVisible(true);
         sendBtn.visible = true;
-        addContactBtn.active = true;
-        profileBtn.active = true;
-        lockVaultBtn.active = true;
+        addContactBtn.visible = true;
+        profileBtn.visible = true;
+        lockVaultBtn.visible = true;
 
         this.setInitialFocus(messageInput);
     }
@@ -213,15 +215,16 @@ public class MessengerScreen extends Screen {
 
         copyTokenBtn.visible = true;
         toggleIpBtn.visible = true;
-        toggleIpBtn.setMessage(Component.literal("👁️ IP Anzeigen"));
+        toggleIpBtn.setMessage(Component.literal("IP Anzeigen"));
         copyIpBtn.visible = true;
         closeProfileBtn.visible = true;
 
+        // Hide underlying sidebar & chat buttons while modal is open
         messageInput.setVisible(false);
         sendBtn.visible = false;
-        addContactBtn.active = false;
-        profileBtn.active = false;
-        lockVaultBtn.active = false;
+        addContactBtn.visible = false;
+        profileBtn.visible = false;
+        lockVaultBtn.visible = false;
     }
 
     private void closeProfileModal() {
@@ -233,11 +236,12 @@ public class MessengerScreen extends Screen {
         copyIpBtn.visible = false;
         closeProfileBtn.visible = false;
 
+        // Re-show underlying sidebar & chat buttons
         messageInput.setVisible(true);
         sendBtn.visible = true;
-        addContactBtn.active = true;
-        profileBtn.active = true;
-        lockVaultBtn.active = true;
+        addContactBtn.visible = true;
+        profileBtn.visible = true;
+        lockVaultBtn.visible = true;
 
         this.setInitialFocus(messageInput);
     }
@@ -314,7 +318,7 @@ public class MessengerScreen extends Screen {
         // Draw Contacts List in Sidebar dynamically
         int contactY = 60;
         for (VaultManager.Contact contact : contactsList) {
-            String statusIcon = contact.favorite ? "⭐ " : (contact.lastSeen > 0 ? "🟢 " : "🔴 ");
+            String statusIcon = contact.favorite ? "* " : (contact.lastSeen > 0 ? "[ON] " : "[OFF] ");
             int color = contact.name.equals(selectedContact) ? 0x00FF88 : 0xCCCCCC;
             extractor.text(this.font, statusIcon + contact.name, 15, contactY, color);
             contactY += 20;
@@ -323,7 +327,7 @@ public class MessengerScreen extends Screen {
         // Draw Main Chat Header & Window
         int chatX = sidebarWidth + 15;
         extractor.fill(sidebarWidth + 5, 5, this.width - 5, this.height - 35, 0xCC181822);
-        extractor.text(this.font, "💬 Chat with: §e" + selectedContact + " §8(AES-256-GCM E2EE)", chatX, 15, 0xFFFFFF);
+        extractor.text(this.font, "Chat mit: §e" + selectedContact + " §8(AES-256-GCM E2EE)", chatX, 15, 0xFFFFFF);
         extractor.fill(chatX, 28, this.width - 15, 29, 0x55555555);
 
         // Render Chat History Messages Stream
@@ -345,7 +349,7 @@ public class MessengerScreen extends Screen {
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "➕ Neuer E2EE Kontakt", modalCenterX, modalCenterY - 60, 0x00FF88);
+            extractor.centeredText(this.font, "Neuer E2EE Kontakt", modalCenterX, modalCenterY - 60, 0x00FF88);
             
             // Clear Labels above input boxes
             extractor.text(this.font, "1. Minecraft Name (z.B. Alex):", modalCenterX - 100, modalCenterY - 50, 0xAAAAAA);
@@ -356,31 +360,31 @@ public class MessengerScreen extends Screen {
             }
         }
 
-        // Render Personal Privacy Profile Modal Overlay
+        // Render Personal Privacy Profile Modal Overlay BEFORE super.extractRenderState
         if (showProfileModal) {
             int modalCenterX = this.width / 2;
             int modalCenterY = this.height / 2;
-            int modalW = 240;
-            int modalH = 160;
+            int modalW = 250;
+            int modalH = 175;
 
             extractor.fill(0, 0, this.width, this.height, 0xAA000000);
             extractor.fill(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalCenterX + (modalW / 2), modalCenterY + (modalH / 2), 0xFF181824);
             extractor.outline(modalCenterX - (modalW / 2), modalCenterY - (modalH / 2), modalW, modalH, 0xFF00FF88);
 
-            extractor.centeredText(this.font, "👤 Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 70, 0x00FF88);
-            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 54, 0xFFFFFF);
+            extractor.centeredText(this.font, "Mein P2P Datenschutz Profil", modalCenterX, modalCenterY - 75, 0x00FF88);
+            extractor.text(this.font, "Spieler: §e" + myUsername, modalCenterX - 100, modalCenterY - 58, 0xFFFFFF);
 
-            // Token Display
-            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 38, 0xAAAAAA);
-            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 27, 0x00FF88);
+            // Token Display (Clear spacing)
+            extractor.text(this.font, "Dein P2P Session Token:", modalCenterX - 100, modalCenterY - 42, 0xAAAAAA);
+            extractor.text(this.font, "§a" + myToken, modalCenterX - 100, modalCenterY - 30, 0x00FF88);
 
-            // IP Address Display with Privacy Masking by default
-            extractor.text(this.font, "Deine IP-Adresse (Standard maskiert):", modalCenterX - 100, modalCenterY + 5, 0xAAAAAA);
-            String displayIp = isIpVisible ? myIpAddress : "••••••••••••••••";
-            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 16, 0xFF88FF);
+            // IP Address Display with Privacy Masking by default (Clear spacing)
+            extractor.text(this.font, "Deine IP-Adresse (Streamer Protection):", modalCenterX - 100, modalCenterY + 8, 0xAAAAAA);
+            String displayIp = isIpVisible ? myIpAddress : "****************";
+            extractor.text(this.font, "§d" + displayIp, modalCenterX - 100, modalCenterY + 20, 0xFF88FF);
 
             if (profileStatus != null) {
-                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY + 48, 0x55FF55);
+                extractor.centeredText(this.font, profileStatus, modalCenterX, modalCenterY - 82, 0x55FF55);
             }
         }
 
